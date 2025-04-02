@@ -67,10 +67,9 @@ bool try_to_anihilate(int* array, int vertice) {
 
 bool create_duons(int* array, int vertice) {
     for (int x : CAMERAS_LINKS[vertice])
-        for (int i : CAMERAS_LINKS[x])
-        if (i != vertice && *(array + i) == 0) {
+        for (int i : CAMERAS_LINKS[x]) if (i != vertice && *(array + i) == 0) {
             ++*(array + x), ++(*(array + i));
-            answer += INDEXES[x] + INDEXES[x] + "+\n";
+            answer += INDEXES[x] + INDEXES[i] + "+\n";
             return true;
         }
     return false;
@@ -78,11 +77,20 @@ bool create_duons(int* array, int vertice) {
 
 bool move_duons(int* array) {
     for (int i = 0; i < CAMERAS_AMOUNT; ++i)
-        if (*(array + i) > 0) {
-            if (try_to_anihilate(array, i))
-                if (create_duons(array, i))
-                    continue;
-            return false;
-        }
-    return true; // if all cameras empty
+        if (*(array + i) > 0)
+            if (!try_to_anihilate(array, i))
+                return false;
+
+    int sum = array[0];
+    for (int i = 1; i < CAMERAS_AMOUNT; ++i){
+        sum += array[i];
+    }
+    if (sum == 0) return true;
+        
+    for (int i = 0; i < CAMERAS_AMOUNT; ++i) {
+        if (create_duons(array, i))
+            break;
+    }
+
+    return false;
 }
