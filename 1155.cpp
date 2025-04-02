@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 const short CAMERAS_AMOUNT = 8;
 const short ADJACTED_VERTICES = 3;
@@ -15,14 +16,16 @@ const short CAMERAS_LINKS[CAMERAS_AMOUNT][ADJACTED_VERTICES]
     { 2, 5, 7 }, // G
     { 3, 4, 6 }  // H
 };
-const char INDEXES[CAMERAS_AMOUNT]
+const std::string INDEXES[CAMERAS_AMOUNT]
 {
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'
+    "A", "B", "C", "D", "E", "F", "G", "H"
 };
 
+std::string answer = "";
+
 bool try_to_anihilate(int* array, int vertice);
-bool create_duons(int* array, int vertice);
 bool move_duons(int* array);
+bool create_duons(int* array, int vertice);
 
 int main(int argc, char const *argv[])
 {
@@ -40,7 +43,10 @@ int main(int argc, char const *argv[])
     }
 
     for (int i = 0; i < MAX_ITERS; ++i) {
-        if (move_duons(cameras)) return 0;
+        if (move_duons(cameras)) {
+            std::cout << answer;
+            return 0;
+        }
     }
     
     std::cout << "IMPOSSIBLE";
@@ -53,7 +59,7 @@ bool try_to_anihilate(int* array, int vertice) {
     for (int x : CAMERAS_LINKS[vertice])
         if (*(array + x) > 0) {
             --(*(array + vertice)), --(*(array + x));
-            std::cout << INDEXES[vertice] << INDEXES[x] << '-' << std::endl;
+            answer += INDEXES[vertice] + INDEXES[x] + "-\n";
             return false;
         }
     return true;
@@ -61,16 +67,12 @@ bool try_to_anihilate(int* array, int vertice) {
 
 bool create_duons(int* array, int vertice) {
     for (int x : CAMERAS_LINKS[vertice])
-        for (int i : CAMERAS_LINKS[x]) if (i != vertice && *(array + i) > 0)
-            for (int j : CAMERAS_LINKS[i])
-                if (*(array + j) > 0 && j != vertice) {
-                    ++*(array + x), ++(*(array + i));
-                    std::cout << INDEXES[x] << INDEXES[x] << '+' << std::endl;
-                    return true;
-                }
-    for (int x : CAMERAS_LINKS[vertice])
-        if (create_duons(array, x))
+        for (int i : CAMERAS_LINKS[x])
+        if (i != vertice && *(array + i) == 0) {
+            ++*(array + x), ++(*(array + i));
+            answer += INDEXES[x] + INDEXES[x] + "+\n";
             return true;
+        }
     return false;
 }
 
@@ -78,7 +80,8 @@ bool move_duons(int* array) {
     for (int i = 0; i < CAMERAS_AMOUNT; ++i)
         if (*(array + i) > 0) {
             if (try_to_anihilate(array, i))
-                create_duons(array, i);
+                if (create_duons(array, i))
+                    continue;
             return false;
         }
     return true; // if all cameras empty
