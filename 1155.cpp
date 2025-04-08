@@ -1,13 +1,10 @@
 #include <iostream>
 #include <string>
-#include <algorithm>
-#include <random>
 
 const short CAMERAS_AMOUNT = 8;
 const short ADJACTED_VERTICES = 3;
-const int MAX_ITERS = 1000;
 
-const short CAMERAS_LINKS[CAMERAS_AMOUNT][ADJACTED_VERTICES]
+const int CAMERAS_LINKS[CAMERAS_AMOUNT][ADJACTED_VERTICES]
 {
     { 1, 3, 4 }, // A
     { 0, 2, 5 }, // B
@@ -18,22 +15,18 @@ const short CAMERAS_LINKS[CAMERAS_AMOUNT][ADJACTED_VERTICES]
     { 2, 5, 7 }, // G
     { 3, 4, 6 }  // H
 };
+
 const std::string INDEXES[CAMERAS_AMOUNT]
 {
     "A", "B", "C", "D", "E", "F", "G", "H"
 };
 
-std::random_device rd;
-std::mt19937 gen(rd());
-
-bool try_to_anihilate(int* array, int vertice);
-bool move_duons(int* array);
-void create_duons(int* array, int vertice);
 
 int main(int argc, char const *argv[])
 {
     int cameras[CAMERAS_AMOUNT] {};
     int sum = 0;
+    std::string answer = "";
 
     for (int i = 0; i < CAMERAS_AMOUNT; ++i) {
         std::cin >> cameras[i];
@@ -45,66 +38,42 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    for (int i = 0; i < MAX_ITERS; ++i)
-        if (move_duons(cameras)) {
-            return 0;
-        }
-
-    return 0;
-}
-
-
-bool try_to_anihilate(int* array, int vertice) {
-    for (int x : CAMERAS_LINKS[vertice])
-        if (*(array + x) > 0) {
-            --*(array + vertice), --*(array + x);
-            std::cout <<  INDEXES[vertice] << INDEXES[x] << "-\n";
-            return false;
-        }
-    return true;
-};
-
-void create_duons(int* array, int vertice) {
-    if (*(array + vertice) == 1) {
-        int links_1[ADJACTED_VERTICES] = { CAMERAS_LINKS[vertice][0], CAMERAS_LINKS[vertice][1], CAMERAS_LINKS[vertice][2] };
-        std::shuffle(links_1, links_1 + ADJACTED_VERTICES, gen);
-    
-        for (int x : links_1) {
-            int links_2[ADJACTED_VERTICES] = { CAMERAS_LINKS[x][0], CAMERAS_LINKS[x][1], CAMERAS_LINKS[x][2] };
-            std::shuffle(links_2, links_2 + ADJACTED_VERTICES, gen);
-    
-            for (int i : links_2) if (i != vertice) {
-                ++*(array + x), ++*(array + i);
-                std::cout << INDEXES[x] << INDEXES[i] << "+\n";
-                return;
+    for (int i = 0; i < CAMERAS_AMOUNT; ++i)
+        for (int j : CAMERAS_LINKS[i])
+            if (cameras[i] != 0 && cameras[j] != 0) {
+                int duons_amount = std::min(cameras[i], cameras[j]);
+                for (int a = 0; a < duons_amount; ++a) {
+                    --cameras[i], --cameras[j];
+                    answer += INDEXES[i] + INDEXES[j] + "-\n";
+                }
             }
-        }    
-    }
-    ++*(array + CAMERAS_LINKS[vertice][0]), ++*(array + CAMERAS_LINKS[vertice][1]);
-    std::cout << INDEXES[CAMERAS_LINKS[vertice][0]] << INDEXES[CAMERAS_LINKS[vertice][1]] << "+\n";
-}
-
-bool move_duons(int* array) {
-    int numbers[CAMERAS_AMOUNT] = {0, 1, 2, 3, 4, 5, 6, 7};
-    std::shuffle(numbers, numbers + CAMERAS_AMOUNT, gen);
 
     for (int i = 0; i < CAMERAS_AMOUNT; ++i)
-        if (*(array + i) > 0)
-            if (!try_to_anihilate(array, i))
-                return false;
+        if (cameras[i] != 0)
+            for (int j : CAMERAS_LINKS[i])
+                for (int k : CAMERAS_LINKS[j])
+                    if (k != i && cameras[k] == 0)
+                        for (int m : CAMERAS_LINKS[k])
+                            if (m != j && cameras[m] != 0) {
+                                int duons_amount = std::min(cameras[i], cameras[m]);
+                                for (int a = 0; a < duons_amount; ++a) {
+                                    ++cameras[j], ++cameras[k];
+                                    answer += INDEXES[j] + INDEXES[k] + "+\n";
+                                }
+                                for (int a = 0; a < duons_amount; ++a) {
+                                    --cameras[i], --cameras[j];
+                                    answer += INDEXES[i] + INDEXES[j] + "-\n";
+                                    --cameras[k], --cameras[m];
+                                    answer += INDEXES[k] + INDEXES[m] + "-\n";
+                                }
+                            }
 
-    int sum = array[0];
-    for (int i = 1; i < CAMERAS_AMOUNT; ++i){
-        sum += array[i];
-    }
-    if (sum == 0) return true;
-        
+    int free_cameras = 0;
     for (int i = 0; i < CAMERAS_AMOUNT; ++i) {
-        if (*(array + i) > 0) {
-            create_duons(array, i);
-            break;
-        }
+        if (cameras[i] == 0) ++free_cameras;
     }
+    if (free_cameras < 8) std::cout << "IMPOSSIBLE";
+    else std::cout << answer;
 
-    return false;
+    return 0;
 }
