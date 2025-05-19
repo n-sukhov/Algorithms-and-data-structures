@@ -6,7 +6,7 @@ struct edge {
 };
 
 bool edgecomparer(const edge &a, const edge &b);
-void unionSets(int u, int v, int* parent);
+void union_sets(int u, int v, int* parent);
 int find(int u, int* parent);
 int Partition(std::vector<edge>& A, int p, int r);
 void Quicksort(std::vector<edge>& A, int p, int r);
@@ -35,7 +35,7 @@ int main() {
 
     for (const edge &e : edges) {
         if (find(e.u, parent) != find(e.v, parent)) {
-            unionSets(e.u, e.v, parent);
+            union_sets(e.u, e.v, parent);
             mstedges.emplace_back(e.u, e.v);
             maxLen = e.length;
         }
@@ -60,7 +60,7 @@ int find(int u, int* parent) {
     return parent[u];
 }
 
-void unionSets(int u, int v, int* parent) {
+void union_sets(int u, int v, int* parent) {
     int rootU = find(u, parent);
     int rootV = find(v, parent);
     if (rootU != rootV) {
